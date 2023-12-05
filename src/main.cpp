@@ -7,15 +7,14 @@
 Matrix matrix;
 Algorithms algo;
 
-void algorithmMenu() {
+void neighboursMenu() {
 	char option;
 	do {
-		std::cout << "\n==== URUCHOM ALGORYTM ===\n";
-		std::cout << "1.Brute force (ST)\n";
-		std::cout << "2.Brute force (MT)\n";
-		std::cout << "3.Podzial i ograniczenia\n";
-		std::cout << "4.Programowanie dynamiczne\n";
-		std::cout << "5.Benchmark\n";
+		std::cout << "\n==== SASIEDZTWO ===\n";
+		std::cout << "1.Odwrotna kolejnosc\n";
+		std::cout << "2.Zamiana miejsc\n";
+		std::cout << "3.Wstaw w miejsce\n";
+		std::cout << "4.Wstaw podsciezke\n";
 		std::cout << "0.Powrot\n";
 		std::cout << "Podaj opcje:";
 		option = _getche();
@@ -23,25 +22,23 @@ void algorithmMenu() {
 
 		switch (option) {
 		case '1':
-			algo.displayResults();
+			algo.setNeighbourhoodType(INVERSE);
 			break;
 
 		case '2':
-			algo.displayResults();
+			algo.setNeighbourhoodType(SWAP);
 			break;
 
 		case '3':
-			algo.displayResults();
+			algo.setNeighbourhoodType(INSERT);
 			break;
 
 		case '4':
-			algo.displayResults();
-			break;
-
-		case '5':
+			algo.setNeighbourhoodType(INSERT_SUB);
 			break;
 		}
 	} while (option != '0');
+	clear();
 }
 
 int main() {
@@ -67,23 +64,35 @@ int main() {
 			std::cout << " Podaj nazwe zbioru:";
 			std::cin >> fileName;
 			matrix.loadFromFile(fileName);
-			// matrix.display();
 			clear();
 			break;
 
 		case '2':
-			std::cout << "Podaj ilosc wierzcholkow:";
+			std::cout << "Podaj dlugosc wykonania (s):";
 			std::cin >> value;
+			algo.setStopCriterium(value);
 			clear();
 			break;
 
 		case '3':
 			clear();
-			matrix.display();
+			neighboursMenu();
 			break;
 
 		case '4':
-			algorithmMenu();
+			
+			break;
+		
+		case '5':
+			std::cout << "Podaj wspolczynnik schladzania:";
+			float a;
+			std::cin >> a;
+			algo.setCoolingConstant(a);
+			clear();
+			break;
+		
+		case '6':
+
 			break;
 		}
 	} while (option != '0');
