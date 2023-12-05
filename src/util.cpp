@@ -218,6 +218,18 @@ void Algorithms::displayResults() {
 	std::cout << "0\nCzas trwania algorytmu: " << executionTime.count() << "s\n";
 }
 
+void Algorithms::setStopCriterium(int value) {
+	executionTime = std::chrono::seconds(value);
+}
+
+void Algorithms::setCoolingConstant(float value) {
+	coolingConstant = value;
+}
+
+void Algorithms::setNeighbourhoodType(NeighbourhoodType type) {
+	currentNeighbourhoodType = type;
+}
+
 void Algorithms::generateInitialSolution(Matrix* matrix) {
 	// Greedy method
 	std::vector<int> possibleVertices;

@@ -4,6 +4,13 @@
 #include <unordered_set>
 #include <unordered_map>
 
+enum NeighbourhoodType {
+	INVERSE,
+	SWAP,
+	INSERT,
+	INSERT_SUB
+};
+
 class Matrix {
 public:
 	int size = 0;
@@ -21,6 +28,10 @@ private:
 
 class Algorithms {
 public:
+	void setStopCriterium(int value);
+	void setCoolingConstant(float value);
+	void setNeighbourhoodType(NeighbourhoodType type);
+
 	// void tabuSearch();
 	void simulatedAnnealing(Matrix* matrix);
 	void displayResults();
@@ -29,10 +40,16 @@ private:
 	int pathLength;
 	std::vector<short> vertexOrder;
 	std::chrono::duration<double> executionTime;
+	float coolingConstant;
+	NeighbourhoodType currentNeighbourhoodType;
 
 	void generateInitialSolution(Matrix* matrix);
 	// SA
-	void generateRandomCandidate(Matrix* matrix);
+	std::vector<short> generateRandomCandidate(std::vector<short>* currentOrder, NeighbourhoodType nearType);
+	std::vector<short> inverse(std::vector<short>* currentOrder);
+	std::vector<short> swap(std::vector<short>* currentOrder);
+	std::vector<short> insert(std::vector<short>* currentOrder);
+	std::vector<short> insertSub(std::vector<short>* currentOrder);
 };
 
 void clear();
