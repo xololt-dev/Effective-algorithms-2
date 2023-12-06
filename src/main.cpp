@@ -23,28 +23,29 @@ void neighboursMenu() {
 		switch (option) {
 		case '1':
 			algo.setNeighbourhoodType(INVERSE);
-			break;
+			return;
 
 		case '2':
 			algo.setNeighbourhoodType(SWAP);
-			break;
+			return;
 
 		case '3':
 			algo.setNeighbourhoodType(INSERT);
-			break;
+			return;
 
 		case '4':
 			algo.setNeighbourhoodType(INSERT_SUB);
-			break;
+			return;
 		}
 	} while (option != '0');
-	clear();
 }
 
 int main() {
 	char option;
 	std::string fileName;
 	int value;
+
+	algo.initRandom();
 
 	do {
 		std::cout << "\n==== MENU GLOWNE ===\n";
@@ -64,7 +65,7 @@ int main() {
 			std::cout << " Podaj nazwe zbioru:";
 			std::cin >> fileName;
 			matrix.loadFromFile(fileName);
-			clear();
+			matrix.display();
 			break;
 
 		case '2':
@@ -92,7 +93,8 @@ int main() {
 			break;
 		
 		case '6':
-
+			algo.simulatedAnnealing((Matrix*) &matrix);
+			algo.displayResults();
 			break;
 		}
 	} while (option != '0');
