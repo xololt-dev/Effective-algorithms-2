@@ -4,12 +4,15 @@
 #include <algorithm>
 
 void Algorithms::simulatedAnnealing(Matrix* matrix) {
-	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-
 	generateInitialSolution(matrix);
 
+	displayResults();
+	std::cout << "\n";
+
+	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+
 	std::vector<short> currentSolutionOrder = vertexOrder, randomCandidateOrder, bestSolutionOrder = vertexOrder;
-	int currentSolutionLength = pathLength, bestSolutionLength = pathLength, currentTemp = 5000;
+	int currentSolutionLength = pathLength, bestSolutionLength = pathLength, currentTemp = 10000;
 
 	while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now) < executionTime) {
 		randomCandidateOrder = generateRandomCandidate(&currentSolutionOrder, currentNeighbourhoodType);
@@ -65,9 +68,9 @@ std::vector<short> Algorithms::inverse(std::vector<short>* currentOrder) {
 	// generate two positions
 	std::tuple<int, int> t = generateRandomTwoPositions(0, vectorSize - 1);
 	
-	std::vector<short>::iterator low = currentOrder->begin(), high = currentOrder->begin();
+	std::vector<short>::iterator low = returnVector.begin(), high = returnVector.begin();
 	std::advance(low, std::get<0>(t));
-	std::advance(high, std::get<1>(t));
+	std::advance(high, std::get<1>(t) + 1);
 	std::reverse(low, high);
 	/*
 	returnVector.reserve(vectorSize);
@@ -99,7 +102,7 @@ std::vector<short> Algorithms::swap(std::vector<short>* currentOrder) {
 	std::tuple<int, int> t = generateRandomTwoPositions(0, vectorSize - 1);
 
 	// swap positions
-	std::vector<short>::iterator low = currentOrder->begin(), high = currentOrder->begin();
+	std::vector<short>::iterator low = returnVector.begin(), high = returnVector.begin();
 
 	std::advance(low, std::get<0>(t));
 	std::advance(high, std::get<1>(t));
