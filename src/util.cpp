@@ -17,8 +17,8 @@ void Matrix::loadFromFile(std::string fileName) {
 		&& fileName.length() - n == 5) {
 		loadFromATSP(fileName);
 	}
-
-	std::cout << "Nie mozna otworzyc pliku!\n";
+	else
+		std::cout << "Nie mozna otworzyc pliku!\n";
 }
 
 void Matrix::loadFromTxt(std::string fileName) {
@@ -230,15 +230,21 @@ void Algorithms::setNeighbourhoodType(NeighbourhoodType type) {
 	currentNeighbourhoodType = type;
 }
 
-std::tuple<int, int> Algorithms::generateRandomTwoPositions(int lowerBound, int higherBound) {
+void Algorithms::initRandom() {
+	gen.seed(rd());
+}
+
+std::tuple<int, int> Algorithms::generateRandomTwoPositions(int lowerBound, int higherBound, bool correctOrder) {
 	// generate two positions
-	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> distribution(lowerBound, higherBound);
 
 	int indexOne = distribution(gen), indexTwo = distribution(gen);
 
 	while (indexOne == indexTwo)
 		indexTwo = distribution(gen);
+
+	if (!correctOrder) 
+		return std::make_tuple(indexOne, indexTwo);
 
 	if (indexTwo < indexOne) {
 		int temp = indexOne;
