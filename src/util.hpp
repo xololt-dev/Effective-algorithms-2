@@ -1,8 +1,9 @@
 #include <fstream>
 #include <vector>
 #include <chrono>
-#include <unordered_set>
-#include <unordered_map>
+#include <random>
+#include <iostream>
+#include <tuple>
 
 enum NeighbourhoodType {
 	INVERSE,
@@ -39,9 +40,14 @@ public:
 private:
 	int pathLength;
 	std::vector<short> vertexOrder;
+
 	std::chrono::duration<double> executionTime;
 	float coolingConstant;
 	NeighbourhoodType currentNeighbourhoodType;
+
+	std::random_device rd;
+	
+	std::tuple<int, int> generateRandomTwoPositions(int lowerBound, int higherBound);
 
 	void generateInitialSolution(Matrix* matrix);
 	// SA

@@ -230,6 +230,25 @@ void Algorithms::setNeighbourhoodType(NeighbourhoodType type) {
 	currentNeighbourhoodType = type;
 }
 
+std::tuple<int, int> Algorithms::generateRandomTwoPositions(int lowerBound, int higherBound) {
+	// generate two positions
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> distribution(lowerBound, higherBound);
+
+	int indexOne = distribution(gen), indexTwo = distribution(gen);
+
+	while (indexOne == indexTwo)
+		indexTwo = distribution(gen);
+
+	if (indexTwo < indexOne) {
+		int temp = indexOne;
+		indexOne = indexTwo;
+		indexTwo = temp;
+	}
+	
+	return std::make_tuple(indexOne, indexTwo);
+}
+
 void Algorithms::generateInitialSolution(Matrix* matrix) {
 	// Greedy method
 	std::vector<int> possibleVertices;
