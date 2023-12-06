@@ -257,6 +257,8 @@ std::tuple<int, int> Algorithms::generateRandomTwoPositions(int lowerBound, int 
 
 void Algorithms::generateInitialSolution(Matrix* matrix) {
 	// Greedy method
+	vertexOrder.clear();
+	pathLength = 0;
 	std::vector<int> possibleVertices;
 	int matrixSize = matrix->size;
 	for (int i = 1; i < matrixSize; i++)
