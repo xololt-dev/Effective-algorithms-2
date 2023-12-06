@@ -12,7 +12,8 @@ void Algorithms::simulatedAnnealing(Matrix* matrix) {
 	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 
 	std::vector<short> currentSolutionOrder = vertexOrder, randomCandidateOrder, bestSolutionOrder = vertexOrder;
-	int currentSolutionLength = pathLength, bestSolutionLength = pathLength, currentTemp = 10000;
+	int currentSolutionLength = pathLength, bestSolutionLength = pathLength;
+	double currentTemp = pathLength / log(1 + coolingConstant) / matrix->size; // startPath / log(1+coolingConstant) / size
 
 	while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now) < executionTime) {
 		randomCandidateOrder = generateRandomCandidate(&currentSolutionOrder, currentNeighbourhoodType);
@@ -161,7 +162,7 @@ bool Algorithms::changeSolutions(int candidatePath, int currentPath, int current
 	if (candidatePath <= currentPath)
 		return true;
 
-	double p = std::exp((double)(candidatePath - currentPath) / (double) currentTemp);
+	double p = std::exp(-((double)(candidatePath - currentPath) / (double) currentTemp));
 	std::uniform_real_distribution<> distribution(0.0, 1.0);
 	double r = distribution(gen);
 
