@@ -3,24 +3,66 @@
 #include <iostream>
 #include <algorithm>
 
-void Algorithms::simulatedAnnealing(Matrix* matrix, double t_0, int eraLength, int maxNonImproved) {
+void Algorithms::simulatedAnnealing(Matrix* matrix, double t_0, int eraLength, int maxNonImproved) {	
+	// greedy path generator
 	std::tuple<std::vector<short>, int> t = generateInitialSolution(matrix);
-
+	int secondVertex = std::get<0>(t)[0];
+	
 	std::cout << "\nDlugosc sciezki zachlannej: " << std::get<1>(t) << "\n";
 	std::cout << "Kolejnosc wierzcholkow:\n0 ";
 	for (auto a : std::get<0>(t)) std::cout << a << " ";
-	std::cout << "\n";
+	std::cout << "0\n";
 
 	std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 
+	/* 
+	* pathDelta:
+	* - low value
+	*	- not much difference path to path
+	*	- suggestion: set high discovery, low-ish local search 
+	* - high value
+	*	- big difference in total path lengths
+	*	- suggestion: set low discovery, high local search
+	* tempEra:
+	* - low value
+	*	- checks neighbourhoods for a short time
+	*	- higher discoverity
+	* - high value
+	*	- checks neighbourhoods for a long time
+	*	- higher local search
+	* maxAllowedNonImprovement:
+	* - low value
+	*	- re-generates current solution after short time 
+	*	- higher discoverity
+	* - high value
+	*	- re-generates current solution after long time 
+	*	- higher local search
+	* currentTemp:
+	* - also "temperature zero" at the beginning
+	* - low value
+	*	- rarely takes worse solution
+	*	- higher local search
+	* - high value
+	*	- frequently takes worse solution
+	*	- higher discoverity
+	*/
+	int pathDelta = getPathDelta(matrix);
 	int tempEra = eraLength, maxAllowedNonImprovement = maxNonImproved, notImprovedStreak = 0;
 	double currentTemp = t_0;
+
 	if (t_0 == 0.0)
-		currentTemp = std::get<1>(t) / log(1 + coolingConstant) / matrix->size; // think about adding time
+		currentTemp = std::get<1>(t) / log(1 + coolingConstant) / (double) pathDelta; // / sqrt(matrix->size); 
+		//currentTemp = std::get<1>(t) / log(1 + coolingConstant) / matrix->size; // think about adding time
 	if (eraLength <= 0)
-		tempEra = 5;
+		tempEra = std::min(pathDelta, matrix->size - 2);
 	if (maxNonImproved <= 0)
-		maxAllowedNonImprovement = 10;
+		maxAllowedNonImprovement = pathDelta * pathDelta * pathDelta / 2;
+
+	std::cout << "\nT_0: " << currentTemp << "\n";
+	std::cout << "Cooling coefficient: " << coolingConstant << "\n";
+	std::cout << "Path delta: " << pathDelta << "\n";
+	std::cout << "Era length: " << tempEra << "\n";
+	std::cout << "Max non improvement streak allowed: " << maxAllowedNonImprovement << "\n";
 
 	std::vector<short> currentSolutionOrder = std::get<0>(t), randomCandidateOrder, bestSolutionOrder = std::get<0>(t);
 	int currentSolutionLength = std::get<1>(t), bestSolutionLength = std::get<1>(t);
@@ -39,19 +81,21 @@ void Algorithms::simulatedAnnealing(Matrix* matrix, double t_0, int eraLength, i
 					bestSolutionLength = candidatePath;
 					bestSolutionOrder = randomCandidateOrder;
 					notImprovedStreak = 0;
+
+					runningTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
 				}
 				else notImprovedStreak++;
 
 				currentSolutionOrder = randomCandidateOrder;
 				currentSolutionLength = candidatePath;
-				break;
 			}
 			else notImprovedStreak++;
 
 			if (notImprovedStreak > maxAllowedNonImprovement) {
-				t = generateSecondarySolution(matrix);
+				t = generateThirdSolution(matrix, secondVertex);
 				currentSolutionOrder = std::get<0>(t);
 				currentSolutionLength = std::get<1>(t);
+				secondVertex = std::get<0>(t)[0];
 				notImprovedStreak = 0;
 				break;
 			}
@@ -63,7 +107,6 @@ void Algorithms::simulatedAnnealing(Matrix* matrix, double t_0, int eraLength, i
 		currentTemp *= coolingConstant;
 	}
 
-	runningTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
 	pathLength = bestSolutionLength;
 	vertexOrder = bestSolutionOrder;
 }
@@ -103,25 +146,7 @@ std::vector<short> Algorithms::inverse(std::vector<short>* currentOrder) {
 	std::advance(low, std::get<0>(t));
 	std::advance(high, std::get<1>(t) + 1);
 	std::reverse(low, high);
-	/*
-	returnVector.reserve(vectorSize);
-
-	// generate two positions
-	std::tuple<int, int> t = generateRandomTwoPositions(0, vectorSize - 1);
-
-	// inverse inside vector
-	std::vector<short>::iterator low = currentOrder->begin(), high = currentOrder->begin();
-	if (std::get<0>(t) > 0) {
-		std::advance(low, std::get<0>(t));
-		returnVector.insert(returnVector.end(), currentOrder->begin(), low++);
-		// std::copy(currentOrder->begin(), low++, returnVector.begin());
-	}
-	std::advance(high, std::get<1>(t) - 1);
-	// returnVector.insert(returnVector.end() - 1, high, low);
-	std::copy(high, low, returnVector.end());
-	returnVector.insert(returnVector.end() - 1, ++high, currentOrder->end());
-	// std::copy(++high, currentOrder->end(), returnVector.begin());
-	*/
+	
 	return returnVector;
 }
 
@@ -167,13 +192,15 @@ std::vector<short> Algorithms::insert(std::vector<short>* currentOrder) {
 std::vector<short> Algorithms::insertSub(std::vector<short>* currentOrder) {
 	std::vector<short> returnVector(*currentOrder);
 	int vectorSize = currentOrder->size();
+	std::vector<short>::iterator beginCurrent = currentOrder->begin();
 
 	// generate two positions
 	std::tuple<int, int> t = generateRandomTwoPositions(0, vectorSize - 1);
 	std::uniform_int_distribution<> distribution(0, vectorSize - 1);
 	int indexThree = distribution(gen);
 
-	// insert group
+	
+	/*
 	if (std::get<0>(t) > indexThree) {
 		std::rotate(returnVector.rend() - std::get<1>(t) - 1,
 			returnVector.rend() - std::get<0>(t),
@@ -184,8 +211,48 @@ std::vector<short> Algorithms::insertSub(std::vector<short>* currentOrder) {
 			returnVector.begin() + std::get<1>(t) + 1,
 			returnVector.begin() + std::min(indexThree + 2, (int)returnVector.size()));
 	}
+	*/
+
+	// insert group
+	if (indexThree > std::get<1>(t)) {
+		if (std::get<0>(t) == 0) {
+			returnVector.insert(returnVector.begin(), beginCurrent + std::get<1>(t) + 1, beginCurrent + indexThree + 1);
+			returnVector.insert(returnVector.begin() + (indexThree - std::get<1>(t)), beginCurrent + std::get<0>(t), beginCurrent + std::get<1>(t) + 1);
+		}
+		else {
+			returnVector.insert(returnVector.begin(), beginCurrent, beginCurrent + std::get<0>(t));
+			returnVector.insert(returnVector.end(), beginCurrent + std::get<1>(t) + 1, beginCurrent + indexThree + 1);
+			returnVector.insert(returnVector.end(), beginCurrent + std::get<0>(t), beginCurrent + std::get<1>(t) + 1);
+		}
+	}
+	else if (indexThree < std::get<0>(t)) {
+		returnVector.insert(returnVector.begin(), beginCurrent, beginCurrent + indexThree);
+		returnVector.insert(returnVector.end(), beginCurrent + std::get<0>(t), beginCurrent + std::get<1>(t) + 1);
+		returnVector.insert(returnVector.end(), beginCurrent + indexThree, beginCurrent + std::get<0>(t));
+		returnVector.insert(returnVector.end(), beginCurrent + std::get<1>(t) + 1, currentOrder->end());
+	}
+	else {
+		returnVector.insert(returnVector.begin(), beginCurrent, beginCurrent + std::get<0>(t));
+		returnVector.insert(returnVector.end(), beginCurrent + std::get<1>(t) + 1, beginCurrent + std::min(std::get<1>(t) + (std::get<1>(t) - std::get<0>(t)), (int) currentOrder->size()));
+		returnVector.insert(returnVector.end(), beginCurrent + std::get<0>(t), beginCurrent + std::get<1>(t) + 1);
+	}
 
 	return returnVector;
+}
+
+int Algorithms::getPathDelta(Matrix* matrix) {
+	int lowest = INT_MAX, highest = 0;
+
+	for (std::vector<std::vector<int>>::iterator i = matrix->mat.begin(); i != matrix->mat.end(); i++) {
+		for (auto j = (*i).begin(); j != (*i).end(); j++) {
+			if (*j < lowest)
+				lowest = *j;
+			else if (*j > highest)
+				highest = *j;
+		}
+	}
+
+	return highest - lowest;
 }
 
 bool Algorithms::changeSolutions(int candidatePath, int currentPath, double currentTemp) {
