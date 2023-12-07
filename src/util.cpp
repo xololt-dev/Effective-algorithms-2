@@ -265,7 +265,7 @@ std::tuple<std::vector<short>, int> Algorithms::generateInitialSolution(Matrix* 
 	while (possibleVertices.size()) {
 		int value = INT_MAX, lowestIndex = 0;
 		// znajdz najkrotsza mozliwa sciezke
-		for (int i = 0; i < matrixSize; i++) {
+		for (int i = 1; i < matrixSize; i++) {
 			if (matrix->mat[i][currentVertex] < value 
 				&& (std::find(possibleVertices.begin(), possibleVertices.end(),	i) != std::end(possibleVertices))) {
 				value = matrix->mat[i][currentVertex];
@@ -317,6 +317,57 @@ std::tuple<std::vector<short>, int> Algorithms::generateSecondarySolution(Matrix
 		// usun z mozliwych do wybrania wierzcholkow
 		possibleVertices.erase(
 			std::find(possibleVertices.begin(), possibleVertices.end(), currentVertex)
+		);
+	}
+
+	returnLength += matrix->mat[0][currentVertex];
+
+	return std::make_tuple(returnVector, returnLength);
+}
+
+std::tuple<std::vector<short>, int> Algorithms::generateThirdSolution(Matrix* matrix, int notAllowedSecondary) {
+	// Greedy method
+	std::vector<short> possibleVertices, returnVector;
+	int matrixSize = matrix->size, returnLength = INT_MAX;
+	returnVector.reserve(matrixSize);
+	for (int i = 1; i < matrixSize; i++)
+		possibleVertices.push_back(i);	
+
+	std::uniform_int_distribution<> u(1, matrixSize - 1);
+
+	// zmien "obecny" wierzcholek
+	int currentVertex = 0;
+	do {
+		currentVertex = u(rd);
+	} while (currentVertex == notAllowedSecondary);
+	returnLength = matrix->mat[currentVertex][0];
+
+	// usun z mozliwych do wybrania wierzcholkow
+	possibleVertices.erase(
+		std::find(possibleVertices.begin(), possibleVertices.end(), currentVertex)
+	);
+
+	while (possibleVertices.size()) {
+		int value = INT_MAX, lowestIndex = 0;
+		// znajdz najkrotsza mozliwa sciezke
+		for (int i = 1; i < matrixSize; i++) {
+			if (matrix->mat[i][currentVertex] < value
+				&& (std::find(possibleVertices.begin(), possibleVertices.end(), i) != std::end(possibleVertices))) {
+				value = matrix->mat[i][currentVertex];
+				lowestIndex = i;
+			}
+		}
+
+		// dodaj do generowanego rozwiazania
+		returnVector.push_back(lowestIndex);
+		returnLength += value;
+
+		// zmien "obecny" wierzcholek
+		currentVertex = lowestIndex;
+
+		// usun z mozliwych do wybrania wierzcholkow
+		possibleVertices.erase(
+			std::find(possibleVertices.begin(), possibleVertices.end(), lowestIndex)
 		);
 	}
 
