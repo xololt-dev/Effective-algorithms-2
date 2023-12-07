@@ -77,19 +77,16 @@ void Matrix::loadFromATSP(std::string fileName) {
 		int dimension = 0, cross = 0, valueInMatrix = 0;
 		std::string stringTemp;
 
+		// Znalezienie wielkoœci matrycy
 		do {
 			file >> stringTemp;
 		} while (stringTemp != "DIMENSION:");
 
-		// Znalezienie wielkoœci matrycy
-		std::cout << stringTemp << std::endl;
 		file >> dimension;
 
 		this->size = dimension;
 		this->mat.reserve(dimension);
 		std::vector<std::vector<int>>::iterator matIter = mat.begin();
-
-		std::cout << dimension << std::endl << std::endl;
 
 		do {
 			file >> stringTemp;
@@ -215,11 +212,11 @@ void Algorithms::displayResults() {
 	std::cout << "\nDlugosc sciezki: " << pathLength << "\n";
 	std::cout << "Kolejnosc wierzcholkow:\n0 ";
 	for (auto a : this->vertexOrder) std::cout << a << " ";
-	std::cout << "0\nCzas trwania algorytmu: " << executionTime.count() << "s\n";
+	std::cout << "0\nCzas trwania algorytmu: " << runningTime.count() << "s\n";
 }
 
 void Algorithms::setStopCriterium(int value) {
-	executionTime = std::chrono::seconds(value);
+	maxExecutionTime = std::chrono::seconds(value);
 }
 
 void Algorithms::setCoolingConstant(float value) {
@@ -255,12 +252,11 @@ std::tuple<int, int> Algorithms::generateRandomTwoPositions(int lowerBound, int 
 	return std::make_tuple(indexOne, indexTwo);
 }
 
-void Algorithms::generateInitialSolution(Matrix* matrix) {
+std::tuple<std::vector<short>, int> Algorithms::generateInitialSolution(Matrix* matrix) {
 	// Greedy method
-	vertexOrder.clear();
-	pathLength = 0;
-	std::vector<int> possibleVertices;
-	int matrixSize = matrix->size;
+	std::vector<short> possibleVertices, returnVector;
+	int matrixSize = matrix->size, returnLength = 0;
+	returnVector.reserve(matrixSize);
 	for (int i = 1; i < matrixSize; i++)
 		possibleVertices.push_back(i);
 
@@ -278,8 +274,8 @@ void Algorithms::generateInitialSolution(Matrix* matrix) {
 		}
 
 		// dodaj do generowanego rozwiazania
-		vertexOrder.push_back(lowestIndex);
-		pathLength += value;
+		returnVector.push_back(lowestIndex);
+		returnLength += value;
 
 		// zmien "obecny" wierzcholek
 		currentVertex = lowestIndex;
@@ -290,7 +286,43 @@ void Algorithms::generateInitialSolution(Matrix* matrix) {
 		);
 	}
 
-	pathLength += matrix->mat[0][currentVertex];
+	returnLength += matrix->mat[0][currentVertex];
+
+	return std::make_tuple(returnVector, returnLength);
+}
+
+std::tuple<std::vector<short>, int> Algorithms::generateSecondarySolution(Matrix* matrix) {
+	// Random method
+	std::vector<short> possibleVertices, returnVector;
+	int matrixSize = matrix->size, returnLength = 0;
+	returnVector.reserve(matrixSize);
+	for (int i = 1; i < matrixSize; i++)
+		possibleVertices.push_back(i);
+
+	int currentVertex = 0;
+	while (possibleVertices.size()) {
+		int value = INT_MAX, lowestIndex = 0;
+
+		// wylosuj nastepny wierzcholek
+		std::uniform_int_distribution<> distribution(0, possibleVertices.size() - 1);
+		int randomVertex = distribution(gen);
+		
+		// dodaj do generowanego rozwiazania
+		returnVector.push_back(possibleVertices[randomVertex]);
+		returnLength += matrix->mat[possibleVertices[randomVertex]][currentVertex];
+		
+		// zmien "obecny" wierzcholek
+		currentVertex = possibleVertices[randomVertex];
+
+		// usun z mozliwych do wybrania wierzcholkow
+		possibleVertices.erase(
+			std::find(possibleVertices.begin(), possibleVertices.end(), currentVertex)
+		);
+	}
+
+	returnLength += matrix->mat[0][currentVertex];
+
+	return std::make_tuple(returnVector, returnLength);
 }
 
 void clear() {
