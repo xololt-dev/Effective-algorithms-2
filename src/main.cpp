@@ -40,40 +40,6 @@ void neighboursMenu() {
 	} while (option != '0');
 }
 
-void stopCriteriumMenu() {
-	char option;
-	do {
-		std::cout << "\n==== KRYTERIUM STOPU ===\n";
-		std::cout << "1.Okreslona liczba iteracji\n";
-		std::cout << "2.Brak poprawy po n iteracjach\n";
-		std::cout << "3.Okreslona liczba zaakceptowanych rozwiazan ponizej n progu\n";
-		std::cout << "4.Akceptowalny poziom bledu upper/lower bound\n";
-		std::cout << "5.Staly czas wykonywania\n";
-		std::cout << "0.Powrot\n";
-		std::cout << "Podaj opcje:";
-		option = _getche();
-		std::cout << std::endl;
-
-		switch (option) {
-		case '1':
-			algo.setNeighbourhoodType(INVERSE);
-			return;
-
-		case '2':
-			algo.setNeighbourhoodType(SWAP);
-			return;
-
-		case '3':
-			algo.setNeighbourhoodType(INSERT);
-			return;
-
-		case '4':
-			algo.setNeighbourhoodType(INSERT_SUB);
-			return;
-		}
-	} while (option != '0');
-}
-
 int main() {
 	char option;
 	std::string fileName;
@@ -126,14 +92,9 @@ int main() {
 			break;
 		
 		case '6':
-			algo.setStopCriterium(10);
-			for (double i = 1.0; i < 20; i *= 2.0) {
-				algo.simulatedAnnealing((Matrix*)&matrix, i, 168, 170*169);
-				algo.displayResults();
-			}
 
-			// algo.simulatedAnnealing((Matrix*) &matrix);
-			// algo.displayResults();
+			algo.simulatedAnnealing((Matrix*) &matrix);
+			algo.displayResults();
 			break;
 		}
 	} while (option != '0');
