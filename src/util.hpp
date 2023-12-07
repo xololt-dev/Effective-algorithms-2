@@ -53,6 +53,8 @@ private:
 
 	std::tuple<std::vector<short>, int> generateInitialSolution(Matrix* matrix);
 	std::tuple<std::vector<short>, int> generateSecondarySolution(Matrix* matrix);
+	std::tuple<std::vector<short>, int> generateThirdSolution(Matrix* matrix, int notAllowedSecondary);
+	int getPathDelta(Matrix* matrix);
 	// SA
 	std::vector<short> generateRandomCandidate(std::vector<short>* currentOrder, NeighbourhoodType nearType);
 	std::vector<short> inverse(std::vector<short>* currentOrder);
