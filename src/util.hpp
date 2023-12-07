@@ -35,22 +35,24 @@ public:
 	void initRandom();
 
 	// void tabuSearch();
-	void simulatedAnnealing(Matrix* matrix);
+	void simulatedAnnealing(Matrix* matrix, double t_0 = 0.0, int eraLength = 0, int maxNonImproved = 0);
 	void displayResults();
 
 private:
 	int pathLength;
 	std::vector<short> vertexOrder;
 
-	std::chrono::duration<double> executionTime = std::chrono::seconds(30);
-	float coolingConstant = 0.99f;
+	std::chrono::duration<double> maxExecutionTime = std::chrono::seconds(30);
+	std::chrono::duration<double> runningTime;
+	double coolingConstant = 0.99f;
 	NeighbourhoodType currentNeighbourhoodType = INVERSE;
 
 	std::random_device rd;
 	std::mt19937 gen;
 	std::tuple<int, int> generateRandomTwoPositions(int lowerBound, int higherBound, bool correctOrder = 1);
 
-	void generateInitialSolution(Matrix* matrix);
+	std::tuple<std::vector<short>, int> generateInitialSolution(Matrix* matrix);
+	std::tuple<std::vector<short>, int> generateSecondarySolution(Matrix* matrix);
 	// SA
 	std::vector<short> generateRandomCandidate(std::vector<short>* currentOrder, NeighbourhoodType nearType);
 	std::vector<short> inverse(std::vector<short>* currentOrder);
@@ -58,7 +60,7 @@ private:
 	std::vector<short> insert(std::vector<short>* currentOrder);
 	std::vector<short> insertSub(std::vector<short>* currentOrder);
 
-	bool changeSolutions(int candidatePath, int currentPath, int currentTemp);
+	bool changeSolutions(int candidatePath, int currentPath, double currentTemp);
 	int calculateCandidate(std::vector<short>* candidateOrder, Matrix* matrix);
 };
 
