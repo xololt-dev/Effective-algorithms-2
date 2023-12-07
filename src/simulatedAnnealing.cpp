@@ -3,37 +3,67 @@
 #include <iostream>
 #include <algorithm>
 
-void Algorithms::simulatedAnnealing(Matrix* matrix) {
-	generateInitialSolution(matrix);
+void Algorithms::simulatedAnnealing(Matrix* matrix, double t_0, int eraLength, int maxNonImproved) {
+	std::tuple<std::vector<short>, int> t = generateInitialSolution(matrix);
 
-	displayResults();
+	std::cout << "\nDlugosc sciezki zachlannej: " << std::get<1>(t) << "\n";
+	std::cout << "Kolejnosc wierzcholkow:\n0 ";
+	for (auto a : std::get<0>(t)) std::cout << a << " ";
 	std::cout << "\n";
 
-	std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> start = std::chrono::steady_clock::now();
 
-	std::vector<short> currentSolutionOrder = vertexOrder, randomCandidateOrder, bestSolutionOrder = vertexOrder;
-	int currentSolutionLength = pathLength, bestSolutionLength = pathLength;
-	double currentTemp = pathLength / log(1 + coolingConstant) / matrix->size; // startPath / log(1+coolingConstant) / size
+	int tempEra = eraLength, maxAllowedNonImprovement = maxNonImproved, notImprovedStreak = 0;
+	double currentTemp = t_0;
+	if (t_0 == 0.0)
+		currentTemp = std::get<1>(t) / log(1 + coolingConstant) / matrix->size; // think about adding time
+	if (eraLength <= 0)
+		tempEra = 5;
+	if (maxNonImproved <= 0)
+		maxAllowedNonImprovement = 10;
 
-	while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - now) < executionTime) {
-		randomCandidateOrder = generateRandomCandidate(&currentSolutionOrder, currentNeighbourhoodType);
+	std::vector<short> currentSolutionOrder = std::get<0>(t), randomCandidateOrder, bestSolutionOrder = std::get<0>(t);
+	int currentSolutionLength = std::get<1>(t), bestSolutionLength = std::get<1>(t);
 
-		int candidatePath = calculateCandidate(&randomCandidateOrder, matrix);
+	while (std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start) < maxExecutionTime) {
+		// eraLength = max time per set temperature
+		int eraLength = 0;
 
-		if (changeSolutions(candidatePath, currentSolutionLength, currentTemp)) {
-			if (candidatePath < bestSolutionLength) {
-				bestSolutionLength = candidatePath;
-				bestSolutionOrder = randomCandidateOrder;
+		while (eraLength < tempEra) {
+			randomCandidateOrder = generateRandomCandidate(&currentSolutionOrder, currentNeighbourhoodType);
+
+			int candidatePath = calculateCandidate(&randomCandidateOrder, matrix);
+
+			if (changeSolutions(candidatePath, currentSolutionLength, currentTemp)) {
+				if (candidatePath < bestSolutionLength) {
+					bestSolutionLength = candidatePath;
+					bestSolutionOrder = randomCandidateOrder;
+					notImprovedStreak = 0;
+				}
+				else notImprovedStreak++;
+
+				currentSolutionOrder = randomCandidateOrder;
+				currentSolutionLength = candidatePath;
+				break;
+			}
+			else notImprovedStreak++;
+
+			if (notImprovedStreak > maxAllowedNonImprovement) {
+				t = generateSecondarySolution(matrix);
+				currentSolutionOrder = std::get<0>(t);
+				currentSolutionLength = std::get<1>(t);
+				notImprovedStreak = 0;
+				break;
 			}
 
-			currentSolutionOrder = randomCandidateOrder;
-			currentSolutionLength = candidatePath;
+			eraLength++;
 		}
 
 		// decrease temp
 		currentTemp *= coolingConstant;
 	}
 
+	runningTime = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start);
 	pathLength = bestSolutionLength;
 	vertexOrder = bestSolutionOrder;
 }
@@ -158,11 +188,11 @@ std::vector<short> Algorithms::insertSub(std::vector<short>* currentOrder) {
 	return returnVector;
 }
 
-bool Algorithms::changeSolutions(int candidatePath, int currentPath, int currentTemp) {
+bool Algorithms::changeSolutions(int candidatePath, int currentPath, double currentTemp) {
 	if (candidatePath <= currentPath)
 		return true;
 
-	double p = std::exp(-((double)(candidatePath - currentPath) / (double) currentTemp));
+	double p = std::exp(-((double)(candidatePath - currentPath) / currentTemp));
 	std::uniform_real_distribution<> distribution(0.0, 1.0);
 	double r = distribution(gen);
 
