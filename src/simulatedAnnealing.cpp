@@ -282,3 +282,35 @@ int Algorithms::calculateCandidate(std::vector<short>* candidateOrder, Matrix* m
 
 	return pathLength;
 }
+
+void Algorithms::benchmarkAnnealing(Matrix* matrix) {
+	std::fstream file;
+	int iter = 5;
+	maxExecutionTime = std::chrono::seconds(5);
+	
+	for (int i = 0; i < 4; i++) {
+		// set neighbourhood type
+		currentNeighbourhoodType = (NeighbourhoodType) i;
+		double tempZero = 8.0;
+
+		for (int z = 0; z < iter; z++) {
+			coolingConstant = 0.99;
+			for (int j = 0; j < iter; j++) {
+				for (int k = 0; k < iter; k++) {
+					file.open("benchmark.txt", std::ios::out | std::ios::app);
+
+					if (file.good()) {
+						simulatedAnnealing(matrix, tempZero);
+
+						file << i << ";" << tempZero << ";" << coolingConstant << ";" << runningTime.count() << ";" << pathLength << "\n";
+
+						file.close();
+					}
+					else std::cout << "Plik nie zostal otworzony!\n";					
+				}
+				coolingConstant /= 2.0;
+			}
+			tempZero *= 2.0;
+		}
+	}
+}

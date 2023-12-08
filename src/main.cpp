@@ -80,7 +80,7 @@ int main() {
 			break;
 
 		case '4':
-			
+			algo.benchmarkAnnealing((Matrix*)&matrix);
 			break;
 		
 		case '5':
@@ -92,7 +92,6 @@ int main() {
 			break;
 		
 		case '6':
-
 			algo.simulatedAnnealing((Matrix*) &matrix);
 			algo.displayResults();
 			break;
