@@ -55,8 +55,15 @@ void Algorithms::simulatedAnnealing(Matrix* matrix, double t_0, int eraLength, i
 		//currentTemp = std::get<1>(t) / log(1 + coolingConstant) / matrix->size; // think about adding time
 	if (eraLength <= 0)
 		tempEra = std::min(pathDelta, matrix->size - 2);
-	if (maxNonImproved <= 0)
+	if (maxNonImproved <= 0) {
+		maxAllowedNonImprovement = 2000000;// INT_MAX / (pathDelta * tempEra);
+		/*
+		if (pathDelta >= 1625)
+			maxAllowedNonImprovement = INT_MAX;
+		else 
 		maxAllowedNonImprovement = pathDelta * pathDelta * pathDelta / 2;
+		*/
+	}
 
 	std::cout << "\nT_0: " << currentTemp << "\n";
 	std::cout << "Cooling coefficient: " << coolingConstant << "\n";
