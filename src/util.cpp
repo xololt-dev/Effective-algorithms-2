@@ -336,10 +336,11 @@ std::tuple<std::vector<short>, int> Algorithms::generateThirdSolution(Matrix* ma
 	std::uniform_int_distribution<> u(1, matrixSize - 1);
 
 	// zmien "obecny" wierzcholek
-	int currentVertex = 0;
+	int currentVertex = notAllowedSecondary;
 	do {
 		currentVertex = u(rd);
 	} while (currentVertex == notAllowedSecondary);
+	returnVector.push_back(currentVertex);
 	returnLength = matrix->mat[currentVertex][0];
 
 	// usun z mozliwych do wybrania wierzcholkow
