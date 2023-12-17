@@ -80,7 +80,7 @@ int main() {
 			break;
 
 		case '4':
-			algo.benchmarkAnnealing((Matrix*)&matrix);
+			algo.tabuSearch((Matrix*)&matrix);
 			break;
 		
 		case '5':

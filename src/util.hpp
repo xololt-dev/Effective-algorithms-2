@@ -34,7 +34,7 @@ public:
 	void setNeighbourhoodType(NeighbourhoodType type);
 	void initRandom();
 
-	// void tabuSearch();
+	void tabuSearch(Matrix* matrix);
 	void simulatedAnnealing(Matrix* matrix, double t_0 = 0.0, int eraLength = 0, int maxNonImproved = 0);
 	void benchmarkAnnealing(Matrix* matrix);
 	void displayResults();
